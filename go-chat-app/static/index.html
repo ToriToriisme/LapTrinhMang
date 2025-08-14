@@ -1,0 +1,41 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Go WebSocket Chat</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="chatbox"></div>
+    <form id="form">
+        <input type="text" id="input" autocomplete="off" />
+        <button>Gửi</button>
+    </form>
+
+    <script>
+        const chatbox = document.getElementById('chatbox');
+        const form = document.getElementById('form');
+        const input = document.getElementById('input');
+
+        // Tạo kết nối WebSocket đến server
+        const socket = new WebSocket("ws://localhost:9000/ws");
+
+        // Khi nhận tin nhắn từ server
+        socket.onmessage = function(event) {
+            const message = document.createElement('p');
+            message.textContent = event.data;
+            chatbox.appendChild(message);
+            chatbox.scrollTop = chatbox.scrollHeight; // Cuộn xuống dưới
+        };
+
+        // Khi form được submit
+        form.onsubmit = function(event) {
+            event.preventDefault();
+            if (input.value) {
+                // Gửi tin nhắn qua WebSocket
+                socket.send(input.value);
+                input.value = '';
+            }
+        };
+    </script>
+</body>
+</html>
