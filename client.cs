@@ -1,54 +1,112 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
 class Client
 {
-    static void Main(string[] args)
+    static readonly string[] choices = { "rock", "paper", "scissors" };
+
+    public static void Run()
     {
         try
         {
             // Cấu hình server IP và port
-            string serverIP = "127.0.0.1"; // IP của server (local)
-            int port = 5000;
+            int port = 5050;
 
-            // Tạo socket TCP
-            TcpClient client = new TcpClient();
-            client.Connect(serverIP, port);
+            using TcpClient client = new TcpClient(AddressFamily.InterNetwork);
+            client.Connect(IPAddress.Loopback, port);
+            using NetworkStream stream = client.GetStream();
+            using StreamReader reader = new StreamReader(stream, Encoding.UTF8, leaveOpen: true);
+            using StreamWriter writer = new StreamWriter(stream, new UTF8Encoding(false)) { AutoFlush = true };
 
-            Console.WriteLine("Đã kết nối đến server!");
+            Console.Write("Nhập tên bạn (Người chơi 2): ");
+            string playerName = Console.ReadLine()?.Trim() ?? "Người chơi 2";
 
-            // Lấy stream để gửi/nhận dữ liệu
-            NetworkStream stream = client.GetStream();
+            // Gửi HELLO để server biết tên
+            writer.WriteLine($"HELLO|{playerName}");
+
+            int p1Wins = 0, p2Wins = 0, draws = 0;
 
             while (true)
             {
-                Console.Write("Bạn: ");
-                string message = Console.ReadLine();
+                // Chờ server yêu cầu lựa chọn
+                string? cmd = reader.ReadLine();
+                if (cmd == null) break;
 
-                // Nếu người dùng gõ "exit" thì thoát
-                if (message.ToLower() == "exit")
+                if (string.Equals(cmd, "ASK_CHOICE", StringComparison.OrdinalIgnoreCase))
+                {
+                    string playerChoice = GetValidChoice(playerName);
+                    writer.WriteLine($"CHOICE|{playerChoice}");
+                }
+                else if (cmd.StartsWith("RESULT|", StringComparison.OrdinalIgnoreCase))
+                {
+                    string[] parts = cmd.Split('|');
+                    // RESULT|p1Choice|p2Choice|result|p1Wins|p2Wins|draws
+                    if (parts.Length >= 7)
+                    {
+                        string p1Choice = parts[1];
+                        string p2Choice = parts[2];
+                        string result = parts[3];
+                        p1Wins = int.Parse(parts[4]);
+                        p2Wins = int.Parse(parts[5]);
+                        draws = int.Parse(parts[6]);
+
+                        Console.WriteLine($"\nMáy chủ đã chọn: {p1Choice}");
+                        Console.WriteLine($"Bạn đã chọn: {p2Choice}");
+                        Console.WriteLine(result);
+                        Console.WriteLine($"Tỉ số: Server {p1Wins} - {p2Wins} {playerName} (Hòa: {draws})");
+                    }
+                }
+                else if (string.Equals(cmd, "REMATCH_REQ", StringComparison.OrdinalIgnoreCase))
+                {
+                    bool wants = AskYesNo("Chơi lại? (y/n): ");
+                    writer.WriteLine(wants ? "REMATCH|Y" : "REMATCH|N");
+                }
+                else if (string.Equals(cmd, "REMATCH_OK", StringComparison.OrdinalIgnoreCase))
+                {
+                    // vòng tiếp theo
+                    continue;
+                }
+                else if (string.Equals(cmd, "BYE", StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine("Kết thúc trò chơi.");
                     break;
-
-                // Gửi dữ liệu tới server
-                byte[] data = Encoding.UTF8.GetBytes(message);
-                stream.Write(data, 0, data.Length);
-
-                // Nhận phản hồi từ server
-                byte[] buffer = new byte[1024];
-                int bytesRead = stream.Read(buffer, 0, buffer.Length);
-                string response = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                Console.WriteLine("Server: " + response);
+                }
             }
-
-            // Đóng kết nối
-            stream.Close();
-            client.Close();
+        }
+        catch (SocketException ex)
+        {
+            Console.WriteLine("Không thể kết nối tới server. Hãy chắc chắn server đang chạy. Chi tiết: " + ex.Message);
         }
         catch (Exception ex)
         {
             Console.WriteLine("Lỗi: " + ex.Message);
+        }
+    }
+
+    static string GetValidChoice(string playerName)
+    {
+        while (true)
+        {
+            Console.Write($"{playerName}, hãy nhập lựa chọn của bạn (rock, paper, scissors): ");
+            string? input = Console.ReadLine()?.Trim().ToLower();
+            if (Array.IndexOf(choices, input ?? "") != -1)
+                return input!;
+            Console.WriteLine("Lựa chọn không hợp lệ! Vui lòng chọn rock, paper hoặc scissors.");
+        }
+    }
+
+    static bool AskYesNo(string prompt)
+    {
+        while (true)
+        {
+            Console.Write(prompt);
+            string? ans = Console.ReadLine()?.Trim().ToLowerInvariant();
+            if (ans == "y" || ans == "yes") return true;
+            if (ans == "n" || ans == "no") return false;
+            Console.WriteLine("Vui lòng nhập y/n.");
         }
     }
 }

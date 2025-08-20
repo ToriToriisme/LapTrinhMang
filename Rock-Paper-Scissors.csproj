@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- Single entry point; choose mode via command-line args: 'server' or 'client' -->
+    <StartupObject>Program</StartupObject>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>Rock_Paper_Scissors</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
