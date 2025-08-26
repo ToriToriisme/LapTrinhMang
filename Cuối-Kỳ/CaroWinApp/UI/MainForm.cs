@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -15,31 +13,174 @@ namespace CaroWinApp.UI
         private const int BoardSize = 15;
         private const int CellSize = 40;
         private readonly char[,] board = new char[BoardSize, BoardSize];
-        private bool isMyTurn = false;
-        private char myChar = 'X';
-        private char oppChar = 'O';
-        private TcpListener? listener;
-        private TcpClient? client;
-        private NetworkStream? stream;
-        private CancellationTokenSource? cts;
-        private readonly object netLock = new object();
-        private const string ChatPrefix = "CHAT";
+        private bool isXTurn = true;
+        private bool gameOver = false;
+
+        private string playerXName = string.Empty;
+        private string playerOName = string.Empty;
+        private GameMode currentMode = GameMode.Local;
+
+        private System.Windows.Forms.Timer? gameTimer;
+        private TimeSpan remaining = TimeSpan.Zero;
+
+        private bool vsComputer = false;
+        private char humanChar = 'X';
+        private readonly Random rng = new Random();
+
+        private UdpClient? udpTelemetry;
+        private int telemetryPort = 9999;
+
+        private int xMoves = 0;
+        private int oMoves = 0;
+        private int xWins = 0;
+        private int xLosses = 0;
+        private int oWins = 0;
+        private int oLosses = 0;
 
         public MainForm()
         {
             InitializeComponent();
             DoubleBuffered = true;
+            UpdateStatus();
+            UpdateCounters();
+            UpdateScores();
         }
 
-        private void Log(string message)
+        protected override void OnLoad(EventArgs e)
         {
-            if (InvokeRequired)
+            base.OnLoad(e);
+            ShowSetupDialog();
+        }
+
+        private void ShowSetupDialog()
+        {
+            using var dlg = new SetupForm();
+            if (dlg.ShowDialog(this) == DialogResult.OK)
             {
-                BeginInvoke(new Action<string>(Log), message);
-                return;
+                playerXName = dlg.PlayerX.Trim();
+                playerOName = dlg.PlayerO.Trim();
+                currentMode = dlg.SelectedMode;
+                vsComputer = currentMode == GameMode.VsComputer;
+                humanChar = 'X';
+
+                if (cboMode != null)
+                {
+                    switch (currentMode)
+                    {
+                        case GameMode.Local: cboMode.SelectedIndex = 0; break;
+                        case GameMode.Timed15: cboMode.SelectedIndex = 1; break;
+                        case GameMode.VsComputer: cboMode.SelectedIndex = 2; break;
+                    }
+                }
+
+                ResetBoard();
+                SetupMode();
             }
-            lstLog.Items.Add($"[{DateTime.Now:HH:mm:ss}] {message}");
-            lstLog.TopIndex = lstLog.Items.Count - 1;
+            else
+            {
+                Close();
+            }
+        }
+
+        private void SetupMode()
+        {
+            StopTimer();
+            if (currentMode == GameMode.Timed15)
+            {
+                remaining = TimeSpan.FromMinutes(15);
+                gameTimer = new System.Windows.Forms.Timer { Interval = 1000 };
+                gameTimer.Tick += (s, e) =>
+                {
+                    if (gameOver) { StopTimer(); return; }
+                    remaining = remaining.Subtract(TimeSpan.FromSeconds(1));
+                    if (remaining.TotalSeconds <= 0)
+                    {
+                        gameOver = true;
+                        lblStatus.Text = $"Time up! {(isXTurn ? playerOName : playerXName)} wins.";
+                        if (isXTurn)
+                        {
+                            // X to move, time up => O wins
+                            oWins++; xLosses++;
+                        }
+                        else
+                        {
+                            xWins++; oLosses++;
+                        }
+                        UpdateScores();
+                        StopTimer();
+                    }
+                    else
+                    {
+                        UpdateStatus();
+                    }
+                };
+                gameTimer.Start();
+            }
+            vsComputer = currentMode == GameMode.VsComputer;
+            UpdateStatus();
+            InitTelemetry();
+        }
+
+        private void StopTimer()
+        {
+            if (gameTimer != null)
+            {
+                try { gameTimer.Stop(); } catch { }
+                gameTimer.Dispose();
+                gameTimer = null;
+            }
+        }
+
+        private void InitTelemetry()
+        {
+            try
+            {
+                udpTelemetry?.Dispose();
+                udpTelemetry = new UdpClient();
+            }
+            catch { }
+        }
+
+        private async Task SendTelemetryAsync(string message)
+        {
+            try
+            {
+                if (udpTelemetry == null) return;
+                var data = Encoding.UTF8.GetBytes(message);
+                await udpTelemetry.SendAsync(data, data.Length, "127.0.0.1", telemetryPort);
+            }
+            catch { }
+        }
+
+        private void UpdateStatus()
+        {
+            string turnName = isXTurn ? playerXName : playerOName;
+            string baseText = gameOver ? "Game over." : $"Turn: {(isXTurn ? 'X' : 'O')} ({turnName})";
+            if (currentMode == GameMode.Timed15 && !gameOver)
+            {
+                baseText += $"  |  Time left: {remaining:mm\\:ss}";
+            }
+            lblStatus.Text = baseText;
+        }
+
+        private void UpdateCounters()
+        {
+            lblXMoves.Text = $"X moves: {xMoves}";
+            lblOMoves.Text = $"O moves: {oMoves}";
+        }
+
+        private void UpdateScores()
+        {
+            lblXScore.Text = $"X W-L: {xWins}-{xLosses}";
+            lblOScore.Text = $"O W-L: {oWins}-{oLosses}";
+        }
+
+        private void cboMode_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            if (cboMode.SelectedIndex == 0) currentMode = GameMode.Local;
+            else if (cboMode.SelectedIndex == 1) currentMode = GameMode.Timed15;
+            else if (cboMode.SelectedIndex == 2) currentMode = GameMode.VsComputer;
+            SetupMode();
         }
 
         private void panelBoard_Paint(object? sender, PaintEventArgs e)
@@ -68,32 +209,59 @@ namespace CaroWinApp.UI
             }
         }
 
-        private void panelBoard_MouseClick(object? sender, MouseEventArgs e)
+        private async void panelBoard_MouseClick(object? sender, MouseEventArgs e)
         {
-            if (!isMyTurn || stream == null) return;
+            if (gameOver) return;
             int c = e.X / CellSize;
             int r = e.Y / CellSize;
             if (r < 0 || r >= BoardSize || c < 0 || c >= BoardSize) return;
             if (board[r, c] != '\0') return;
 
-            PlaceAndSend(r, c, myChar);
+            char ch = isXTurn ? 'X' : 'O';
+            PlaceLocal(r, c, ch);
+            await SendTelemetryAsync($"MOVE {r} {c} {ch}");
+
+            if (currentMode == GameMode.VsComputer && !gameOver && !isXTurn)
+            {
+                await Task.Delay(200);
+                var (ar, ac) = ChooseAiMove();
+                if (ar >= 0)
+                {
+                    PlaceLocal(ar, ac, 'O');
+                    await SendTelemetryAsync($"MOVE {ar} {ac} O");
+                }
+            }
         }
 
-        private void PlaceAndSend(int r, int c, char ch)
+        private void PlaceLocal(int r, int c, char ch)
         {
             board[r, c] = ch;
-            Invalidate(panelBoard.Bounds);
-            Log($"Move {ch} at {r},{c}");
+            if (ch == 'X') xMoves++; else oMoves++;
+            UpdateCounters();
+            panelBoard.Invalidate();
             if (CheckWin(r, c, ch))
             {
-                Log($"Player {ch} wins!");
+                gameOver = true;
+                string winnerName = ch == 'X' ? playerXName : playerOName;
+                lblStatus.Text = $"Player {ch} ({winnerName}) wins!";
+                if (ch == 'X') { xWins++; oLosses++; } else { oWins++; xLosses++; }
+                UpdateScores();
+                StopTimer();
+                return;
             }
-            isMyTurn = ch != myChar;
+            isXTurn = !isXTurn;
+            UpdateStatus();
+        }
 
-            if (ch == myChar && stream != null)
-            {
-                SendLine($"MOVE {r} {c}");
-            }
+        private (int r, int c) ChooseAiMove()
+        {
+            if (board[BoardSize / 2, BoardSize / 2] == '\0') return (BoardSize / 2, BoardSize / 2);
+            var empties = new List<(int r, int c)>();
+            for (int r = 0; r < BoardSize; r++)
+                for (int c = 0; c < BoardSize; c++)
+                    if (board[r, c] == '\0') empties.Add((r, c));
+            if (empties.Count == 0) return (-1, -1);
+            return empties[rng.Next(empties.Count)];
         }
 
         private bool CheckWin(int r, int c, char ch)
@@ -123,165 +291,35 @@ namespace CaroWinApp.UI
             return cnt;
         }
 
-        private async void btnHost_Click(object? sender, EventArgs e)
-        {
-            if (!int.TryParse(txtPort.Text, out int port)) { MessageBox.Show("Invalid port"); return; }
-            await StartHostAsync(port);
-        }
-
-        private async void btnJoin_Click(object? sender, EventArgs e)
-        {
-            if (!int.TryParse(txtPort.Text, out int port)) { MessageBox.Show("Invalid port"); return; }
-            await JoinAsync(txtPeerIp.Text.Trim(), port);
-        }
-
-        private void btnReset_Click(object? sender, EventArgs e)
+        private async void btnReset_Click(object? sender, EventArgs e)
         {
             ResetBoard();
-            SendLine("RESET");
-        }
-
-        private void btnSendChat_Click(object? sender, EventArgs e)
-        {
-            var text = txtChat.Text.Trim();
-            if (text.Length == 0) return;
-            SendLine($"{ChatPrefix} {text}");
-            Log($"Me: {text}");
-            txtChat.Clear();
+            SetupMode();
+            await SendTelemetryAsync("RESET");
         }
 
         private void ResetBoard()
         {
             Array.Clear(board, 0, board.Length);
-            Invalidate(panelBoard.Bounds);
-            Log("Board reset");
-        }
-
-        private async Task StartHostAsync(int port)
-        {
-            CleanupNet();
-            myChar = 'X';
-            oppChar = 'O';
-            isMyTurn = true;
-            listener = new TcpListener(IPAddress.Any, port);
-            listener.Start();
-            Log($"Hosting on 0.0.0.0:{port}");
-            client = await listener.AcceptTcpClientAsync();
-            stream = client.GetStream();
-            Log("Client connected");
-            cts = new CancellationTokenSource();
-            _ = Task.Run(() => ReceiveLoop(cts.Token));
-            SendLine("HELLO HOST X");
-        }
-
-        private async Task JoinAsync(string host, int port)
-        {
-            CleanupNet();
-            myChar = 'O';
-            oppChar = 'X';
-            isMyTurn = false;
-            client = new TcpClient();
-            await client.ConnectAsync(host, port);
-            stream = client.GetStream();
-            Log($"Connected to {host}:{port}");
-            cts = new CancellationTokenSource();
-            _ = Task.Run(() => ReceiveLoop(cts.Token));
-            SendLine("HELLO CLIENT O");
-        }
-
-        private void CleanupNet()
-        {
-            try { cts?.Cancel(); } catch { }
-            try { stream?.Dispose(); } catch { }
-            try { client?.Close(); } catch { }
-            try { listener?.Stop(); } catch { }
-            cts = null; stream = null; client = null; listener = null;
-        }
-
-        private void SendLine(string line)
-        {
-            try
-            {
-                lock (netLock)
-                {
-                    if (stream == null) return;
-                    var data = Encoding.UTF8.GetBytes(line + "\n");
-                    stream.Write(data, 0, data.Length);
-                }
-                Log($"-> {line}");
-            }
-            catch (Exception ex)
-            {
-                Log($"Send error: {ex.Message}");
-            }
-        }
-
-        private async Task ReceiveLoop(CancellationToken token)
-        {
-            var buffer = new byte[4096];
-            var sb = new StringBuilder();
-            try
-            {
-                while (!token.IsCancellationRequested && stream != null)
-                {
-                    int n = await stream.ReadAsync(buffer, 0, buffer.Length, token);
-                    if (n <= 0) break;
-                    sb.Append(Encoding.UTF8.GetString(buffer, 0, n));
-                    int idx;
-                    while ((idx = sb.ToString().IndexOf('\n')) >= 0)
-                    {
-                        string line = sb.ToString(0, idx).Trim();
-                        sb.Remove(0, idx + 1);
-                        if (line.Length == 0) continue;
-                        HandleLine(line);
-                    }
-                }
-            }
-            catch (OperationCanceledException) { }
-            catch (Exception ex)
-            {
-                Log($"Receive error: {ex.Message}");
-            }
-            Log("Connection closed");
-        }
-
-        private void HandleLine(string line)
-        {
-            Log($"<- {line}");
-            var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length == 0) return;
-            switch (parts[0].ToUpperInvariant())
-            {
-                case "MOVE":
-                    if (parts.Length >= 3 && int.TryParse(parts[1], out int r) && int.TryParse(parts[2], out int c))
-                    {
-                        if (r >= 0 && r < BoardSize && c >= 0 && c < BoardSize && board[r, c] == '\0')
-                        {
-                            PlaceAndSend(r, c, oppChar);
-                        }
-                    }
-                    break;
-                case "RESET":
-                    ResetBoard();
-                    break;
-                case "HELLO":
-                    // no-op: visible in log for Wireshark/demo
-                    break;
-                case ChatPrefix:
-                    if (parts.Length >= 2)
-                    {
-                        var msg = line.Substring(ChatPrefix.Length).TrimStart();
-                        Log($"Peer: {msg}");
-                    }
-                    break;
-            }
+            panelBoard.Invalidate();
+            gameOver = false;
+            isXTurn = true;
+            xMoves = 0; oMoves = 0; UpdateCounters();
+            UpdateStatus();
         }
 
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
             base.OnFormClosed(e);
-            CleanupNet();
+            try { udpTelemetry?.Dispose(); } catch { }
         }
+    }
+
+    public enum GameMode
+    {
+        Local,
+        Timed15,
+        VsComputer
     }
 }
 

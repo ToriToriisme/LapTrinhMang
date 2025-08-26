@@ -6,16 +6,14 @@ namespace CaroWinApp.UI
     {
         private System.ComponentModel.IContainer components = null;
         private Panel panelBoard;
-        private Button btnHost;
-        private Button btnJoin;
-        private TextBox txtPeerIp;
-        private TextBox txtPort;
-        private Label lblIp;
-        private Label lblPort;
-        private ListBox lstLog;
         private Button btnReset;
-        private TextBox txtChat;
-        private Button btnSendChat;
+        private Label lblStatus;
+        private ComboBox cboMode;
+        private Label lblMode;
+        private Label lblXMoves;
+        private Label lblOMoves;
+        private Label lblXScore;
+        private Label lblOScore;
 
         protected override void Dispose(bool disposing)
         {
@@ -30,14 +28,14 @@ namespace CaroWinApp.UI
         {
             components = new System.ComponentModel.Container();
             panelBoard = new Panel();
-            btnHost = new Button();
-            btnJoin = new Button();
-            txtPeerIp = new TextBox();
-            txtPort = new TextBox();
-            lblIp = new Label();
-            lblPort = new Label();
-            lstLog = new ListBox();
             btnReset = new Button();
+            lblStatus = new Label();
+            lblMode = new Label();
+            cboMode = new ComboBox();
+            lblXMoves = new Label();
+            lblOMoves = new Label();
+            lblXScore = new Label();
+            lblOScore = new Label();
 
             SuspendLayout();
 
@@ -48,67 +46,60 @@ namespace CaroWinApp.UI
             panelBoard.Paint += panelBoard_Paint;
             panelBoard.MouseClick += panelBoard_MouseClick;
 
-            lblIp.AutoSize = true;
-            lblIp.Location = new System.Drawing.Point(630, 15);
-            lblIp.Text = "Peer IP:";
+            lblStatus.AutoSize = true;
+            lblStatus.Location = new System.Drawing.Point(630, 20);
+            lblStatus.Name = "lblStatus";
+            lblStatus.Size = new System.Drawing.Size(67, 15);
+            lblStatus.Text = "Turn: X";
 
-            txtPeerIp.Location = new System.Drawing.Point(690, 12);
-            txtPeerIp.Size = new System.Drawing.Size(180, 23);
-            txtPeerIp.Text = "127.0.0.1";
+            lblMode.AutoSize = true;
+            lblMode.Location = new System.Drawing.Point(630, 55);
+            lblMode.Text = "Mode:";
 
-            lblPort.AutoSize = true;
-            lblPort.Location = new System.Drawing.Point(630, 50);
-            lblPort.Text = "Port:";
+            cboMode.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboMode.Location = new System.Drawing.Point(680, 52);
+            cboMode.Size = new System.Drawing.Size(150, 23);
+            cboMode.Items.AddRange(new object[] { "Local", "Timed 15m", "Vs Computer" });
+            cboMode.SelectedIndexChanged += cboMode_SelectedIndexChanged;
 
-            txtPort.Location = new System.Drawing.Point(690, 47);
-            txtPort.Size = new System.Drawing.Size(80, 23);
-            txtPort.Text = "9090";
-
-            btnHost.Location = new System.Drawing.Point(630, 85);
-            btnHost.Size = new System.Drawing.Size(100, 30);
-            btnHost.Text = "Host";
-            btnHost.Click += btnHost_Click;
-
-            btnJoin.Location = new System.Drawing.Point(770, 85);
-            btnJoin.Size = new System.Drawing.Size(100, 30);
-            btnJoin.Text = "Join";
-            btnJoin.Click += btnJoin_Click;
-
-            btnReset.Location = new System.Drawing.Point(630, 130);
-            btnReset.Size = new System.Drawing.Size(240, 30);
-            btnReset.Text = "Reset Game";
+            btnReset.Location = new System.Drawing.Point(630, 90);
+            btnReset.Size = new System.Drawing.Size(200, 30);
+            btnReset.Text = "New Game";
             btnReset.Click += btnReset_Click;
 
-            lstLog.Location = new System.Drawing.Point(630, 180);
-            lstLog.Size = new System.Drawing.Size(240, 380);
+            lblXMoves.AutoSize = true;
+            lblXMoves.Location = new System.Drawing.Point(630, 140);
+            lblXMoves.Text = "X moves: 0";
 
-            txtChat.Location = new System.Drawing.Point(630, 570);
-            txtChat.Size = new System.Drawing.Size(180, 23);
+            lblOMoves.AutoSize = true;
+            lblOMoves.Location = new System.Drawing.Point(630, 160);
+            lblOMoves.Text = "O moves: 0";
 
-            btnSendChat.Location = new System.Drawing.Point(820, 568);
-            btnSendChat.Size = new System.Drawing.Size(50, 27);
-            btnSendChat.Text = "Send";
-            btnSendChat.Click += btnSendChat_Click;
+            lblXScore.AutoSize = true;
+            lblXScore.Location = new System.Drawing.Point(630, 200);
+            lblXScore.Text = "X W-L: 0-0";
+
+            lblOScore.AutoSize = true;
+            lblOScore.Location = new System.Drawing.Point(630, 220);
+            lblOScore.Text = "O W-L: 0-0";
 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(890, 624);
+            ClientSize = new System.Drawing.Size(870, 630);
             Controls.Add(panelBoard);
-            Controls.Add(lblIp);
-            Controls.Add(txtPeerIp);
-            Controls.Add(lblPort);
-            Controls.Add(txtPort);
-            Controls.Add(btnHost);
-            Controls.Add(btnJoin);
+            Controls.Add(lblStatus);
+            Controls.Add(lblMode);
+            Controls.Add(cboMode);
             Controls.Add(btnReset);
-            Controls.Add(lstLog);
-            Controls.Add(txtChat);
-            Controls.Add(btnSendChat);
+            Controls.Add(lblXMoves);
+            Controls.Add(lblOMoves);
+            Controls.Add(lblXScore);
+            Controls.Add(lblOScore);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             Name = "MainForm";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "Caro (TCP)";
+            Text = "Caro (Local 2 Players)";
             ResumeLayout(false);
             PerformLayout();
         }
