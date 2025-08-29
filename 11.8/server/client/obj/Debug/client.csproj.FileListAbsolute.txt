@@ -1,0 +1,7 @@
+C:\Users\Yen Vy\source\11.8\server\client\obj\Debug\client.csproj.AssemblyReference.cache
+C:\Users\Yen Vy\source\11.8\server\client\obj\Debug\client.csproj.CoreCompileInputs.cache
+C:\Users\Yen Vy\source\11.8\server\client\bin\Debug\client.exe.config
+C:\Users\Yen Vy\source\11.8\server\client\bin\Debug\client.exe
+C:\Users\Yen Vy\source\11.8\server\client\bin\Debug\client.pdb
+C:\Users\Yen Vy\source\11.8\server\client\obj\Debug\client.exe
+C:\Users\Yen Vy\source\11.8\server\client\obj\Debug\client.pdb
