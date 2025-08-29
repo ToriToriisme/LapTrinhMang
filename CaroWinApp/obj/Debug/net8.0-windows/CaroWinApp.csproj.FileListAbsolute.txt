@@ -1,0 +1,18 @@
+C:\Users\quoct\OneDrive\Desktop\C_laptrinh\Rock-Paper-Scissors\Rock-Paper-Scissors\LapTrinhMang\Cuối-Kỳ\CaroWinApp\bin\Debug\net8.0-windows\CaroWinApp.exe
+C:\Users\quoct\OneDrive\Desktop\C_laptrinh\Rock-Paper-Scissors\Rock-Paper-Scissors\LapTrinhMang\Cuối-Kỳ\CaroWinApp\bin\Debug\net8.0-windows\CaroWinApp.deps.json
+C:\Users\quoct\OneDrive\Desktop\C_laptrinh\Rock-Paper-Scissors\Rock-Paper-Scissors\LapTrinhMang\Cuối-Kỳ\CaroWinApp\bin\Debug\net8.0-windows\CaroWinApp.runtimeconfig.json
+C:\Users\quoct\OneDrive\Desktop\C_laptrinh\Rock-Paper-Scissors\Rock-Paper-Scissors\LapTrinhMang\Cuối-Kỳ\CaroWinApp\bin\Debug\net8.0-windows\CaroWinApp.dll
+C:\Users\quoct\OneDrive\Desktop\C_laptrinh\Rock-Paper-Scissors\Rock-Paper-Scissors\LapTrinhMang\Cuối-Kỳ\CaroWinApp\bin\Debug\net8.0-windows\CaroWinApp.pdb
+C:\Users\quoct\OneDrive\Desktop\C_laptrinh\Rock-Paper-Scissors\Rock-Paper-Scissors\LapTrinhMang\Cuối-Kỳ\CaroWinApp\obj\Debug\net8.0-windows\CaroWinApp.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\quoct\OneDrive\Desktop\C_laptrinh\Rock-Paper-Scissors\Rock-Paper-Scissors\LapTrinhMang\Cuối-Kỳ\CaroWinApp\obj\Debug\net8.0-windows\CaroWinApp.AssemblyInfoInputs.cache
+C:\Users\quoct\OneDrive\Desktop\C_laptrinh\Rock-Paper-Scissors\Rock-Paper-Scissors\LapTrinhMang\Cuối-Kỳ\CaroWinApp\obj\Debug\net8.0-windows\CaroWinApp.AssemblyInfo.cs
+C:\Users\quoct\OneDrive\Desktop\C_laptrinh\Rock-Paper-Scissors\Rock-Paper-Scissors\LapTrinhMang\Cuối-Kỳ\CaroWinApp\obj\Debug\net8.0-windows\CaroWinApp.csproj.CoreCompileInputs.cache
+C:\Users\quoct\OneDrive\Desktop\C_laptrinh\Rock-Paper-Scissors\Rock-Paper-Scissors\LapTrinhMang\Cuối-Kỳ\CaroWinApp\obj\Debug\net8.0-windows\CaroWinApp.sourcelink.json
+C:\Users\quoct\OneDrive\Desktop\C_laptrinh\Rock-Paper-Scissors\Rock-Paper-Scissors\LapTrinhMang\Cuối-Kỳ\CaroWinApp\obj\Debug\net8.0-windows\CaroWinApp.dll
+C:\Users\quoct\OneDrive\Desktop\C_laptrinh\Rock-Paper-Scissors\Rock-Paper-Scissors\LapTrinhMang\Cuối-Kỳ\CaroWinApp\obj\Debug\net8.0-windows\refint\CaroWinApp.dll
+C:\Users\quoct\OneDrive\Desktop\C_laptrinh\Rock-Paper-Scissors\Rock-Paper-Scissors\LapTrinhMang\Cuối-Kỳ\CaroWinApp\obj\Debug\net8.0-windows\CaroWinApp.pdb
+C:\Users\quoct\OneDrive\Desktop\C_laptrinh\Rock-Paper-Scissors\Rock-Paper-Scissors\LapTrinhMang\Cuối-Kỳ\CaroWinApp\obj\Debug\net8.0-windows\CaroWinApp.genruntimeconfig.cache
+C:\Users\quoct\OneDrive\Desktop\C_laptrinh\Rock-Paper-Scissors\Rock-Paper-Scissors\LapTrinhMang\Cuối-Kỳ\CaroWinApp\obj\Debug\net8.0-windows\ref\CaroWinApp.dll
+C:\Users\Yen Vy\source\Cuối-Kỳ\CaroWinApp\obj\Debug\net8.0-windows\CaroWinApp.dll
+C:\Users\Yen Vy\source\Cuối-Kỳ\CaroWinApp\obj\Debug\net8.0-windows\refint\CaroWinApp.dll
+C:\Users\Yen Vy\source\Cuối-Kỳ\CaroWinApp\obj\Debug\net8.0-windows\CaroWinApp.pdb
