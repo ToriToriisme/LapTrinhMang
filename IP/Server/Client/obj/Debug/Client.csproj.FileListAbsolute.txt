@@ -1,0 +1,7 @@
+C:\Users\Yen Vy\source\IP\Server\Client\bin\Debug\Client.exe.config
+C:\Users\Yen Vy\source\IP\Server\Client\bin\Debug\Client.exe
+C:\Users\Yen Vy\source\IP\Server\Client\bin\Debug\Client.pdb
+C:\Users\Yen Vy\source\IP\Server\Client\obj\Debug\Client.csproj.AssemblyReference.cache
+C:\Users\Yen Vy\source\IP\Server\Client\obj\Debug\Client.csproj.CoreCompileInputs.cache
+C:\Users\Yen Vy\source\IP\Server\Client\obj\Debug\Client.exe
+C:\Users\Yen Vy\source\IP\Server\Client\obj\Debug\Client.pdb
